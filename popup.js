@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── Sign Out ───────────────────────────────────────────────────────────
   signOutBtn.addEventListener('click', async () => {
-    if (!confirm('Sign out of Gmail OTP Catcher?')) return;
+    if (!confirm('Sign out of Codelet?')) return;
     signOutBtn.disabled = true;
     await sendMessage({ type: 'SIGN_OUT' });
     await refreshStatus();

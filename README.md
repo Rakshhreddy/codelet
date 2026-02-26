@@ -1,4 +1,4 @@
-# Gmail OTP Catcher
+# Codelet
 
 A Chrome extension that monitors your Gmail for OTP codes and verification links — and surfaces them as a floating overlay on whatever page you're on. No tab switching. No copy-pasting. Just the code, right where you need it.
 

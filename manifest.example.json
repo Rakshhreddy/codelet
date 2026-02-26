@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Gmail OTP Catcher",
+  "name": "Codelet",
   "version": "1.0",
-  "description": "Auto-detects OTP codes and verification links from Gmail and shows them on your current tab",
+  "description": "Auto-detects OTP codes and verification links from Gmail and shows them on your current tab — no tab switching.",
 
   "permissions": ["identity", "storage", "alarms", "activeTab", "scripting"],
   "host_permissions": ["https://www.googleapis.com/*"],
