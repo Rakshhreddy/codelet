@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Actual manifest contains your personal Google OAuth client_id.
+# Contributors must copy manifest.example.json → manifest.json and add their own.
+manifest.json
+
+# Node (if you add a build step later)
+node_modules/
+*.log

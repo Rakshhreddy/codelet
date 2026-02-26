@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gmail OTP Catcher</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 300px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      font-size: 14px;
+      color: #202124;
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1a73e8, #1557b0);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-icon {
+      font-size: 22px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .header-title {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    .header-sub {
+      color: rgba(255,255,255,0.75);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    /* ── Status Bar ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 16px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: #5f6368;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ea4335;
+      flex-shrink: 0;
+    }
+    .status-dot.connected { background: #34a853; }
+
+    /* Toggle switch */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #5f6368;
+      cursor: pointer;
+    }
+    .toggle { position: relative; width: 38px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #bdc1c6;
+      border-radius: 20px;
+      transition: 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      left: 3px; top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .toggle input:checked + .toggle-slider { background: #1a73e8; }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    /* ── Content ── */
+    .content { padding: 14px 16px; }
+
+    /* Last Code Card */
+    .code-card {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .code-card-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #5f6368;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 10px;
+    }
+    .code-value {
+      font-family: 'Roboto Mono', 'SF Mono', 'Courier New', Courier, monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: #202124;
+      letter-spacing: 5px;
+      line-height: 1.1;
+    }
+    .code-meta {
+      font-size: 11px;
+      color: #5f6368;
+      margin-top: 6px;
+    }
+    .no-code {
+      font-size: 13px;
+      color: #9aa0a6;
+      font-style: italic;
+    }
+
+    /* Buttons */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      margin-bottom: 8px;
+    }
+    .btn:last-child { margin-bottom: 0; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-primary { background: #1a73e8; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #1557b0; }
+
+    .btn-secondary { background: #f1f3f4; color: #202124; }
+    .btn-secondary:hover:not(:disabled) { background: #e8eaed; }
+
+    .btn-danger { background: #fce8e6; color: #c5221f; }
+    .btn-danger:hover:not(:disabled) { background: #fad2cf; }
+
+    /* Sign-in section */
+    #auth-section { display: none; }
+    #main-section { display: none; }
+
+    /* ── Footer ── */
+    .popup-footer {
+      padding: 8px 16px 12px;
+      text-align: center;
+      font-size: 11px;
+      color: #9aa0a6;
+      border-top: 1px solid #f1f3f4;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-icon">📧</div>
+    <div>
+      <div class="header-title">Gmail OTP Catcher</div>
+      <div class="header-sub">Auto-detect verification codes</div>
+    </div>
+  </div>
+
+  <!-- ── Not Authenticated ── -->
+  <div id="auth-section" class="content">
+    <p style="font-size:13px;color:#5f6368;margin-bottom:14px;line-height:1.6;">
+      Sign in with Google to let the extension monitor your Gmail for OTP / verification codes.
+    </p>
+    <button class="btn btn-primary" id="sign-in-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+        <path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.972-5.445
+          3.972-3.332 0-6.033-2.701-6.033-6.032s2.701-6.032
+          6.033-6.032c1.498 0 2.866.549 3.921 1.453l2.814-2.814C17.503
+          2.988 15.139 2 12.545 2 7.021 2 2.543 6.477 2.543 12s4.478
+          10 10.002 10c8.396 0 10.249-7.85 9.426-11.748L12.545 10.239z"/>
+      </svg>
+      Sign in with Google
+    </button>
+  </div>
+
+  <!-- ── Authenticated ── -->
+  <div id="main-section">
+    <div class="status-bar">
+      <div class="status-indicator">
+        <div class="status-dot connected" id="status-dot"></div>
+        <span id="status-text">Connected to Gmail</span>
+      </div>
+      <label class="toggle-wrap" title="Enable or disable OTP detection">
+        Active
+        <label class="toggle">
+          <input type="checkbox" id="enabled-toggle" checked>
+          <div class="toggle-slider"></div>
+        </label>
+      </label>
+    </div>
+
+    <div class="content">
+      <div class="code-card">
+        <div class="code-card-label">Last Detected Code</div>
+        <div id="last-code-display">
+          <div class="no-code">No code detected yet</div>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" id="check-now-btn">
+        &#x21bb;&nbsp; Check Gmail Now
+      </button>
+      <button class="btn btn-danger" id="sign-out-btn">
+        Sign Out
+      </button>
+    </div>
+  </div>
+
+  <div class="popup-footer">
+    Checks Gmail every ~10s &middot; Codes auto-dismiss after 30 s
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

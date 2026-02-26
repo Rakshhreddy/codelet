@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Worker — Problem, Fix & Future</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #1a1a1a;
+      background: #fff;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 60px 40px;
+    }
+
+    /* ── Cover ── */
+    .cover {
+      border-bottom: 2px solid #1a73e8;
+      padding-bottom: 32px;
+      margin-bottom: 48px;
+    }
+    .cover-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #1a73e8;
+      margin-bottom: 12px;
+    }
+    .cover h1 {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #1a1a1a;
+      margin-bottom: 10px;
+    }
+    .cover-meta {
+      font-size: 13px;
+      color: #888;
+      margin-top: 10px;
+    }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 44px;
+    }
+    .section-number {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #1a73e8;
+      margin-bottom: 6px;
+    }
+    .section h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    p {
+      margin-bottom: 14px;
+      color: #2c2c2c;
+    }
+
+    /* ── Callout ── */
+    .callout {
+      background: #f0f6ff;
+      border-left: 4px solid #1a73e8;
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #1a1a1a;
+    }
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #1a73e8;
+    }
+
+    .callout-warning {
+      background: #fff8e6;
+      border-left-color: #f5a623;
+    }
+    .callout-warning strong { color: #c87700; }
+
+    .callout-green {
+      background: #f0faf4;
+      border-left-color: #34a853;
+    }
+    .callout-green strong { color: #1e8e3e; }
+
+    /* ── Flow diagram ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 20px 0;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .flow-box {
+      background: #f1f3f4;
+      border-radius: 6px;
+      padding: 8px 14px;
+      color: #1a1a1a;
+      white-space: nowrap;
+    }
+    .flow-box.blue {
+      background: #1a73e8;
+      color: #fff;
+    }
+    .flow-box.green {
+      background: #34a853;
+      color: #fff;
+    }
+    .flow-arrow {
+      padding: 0 8px;
+      color: #aaa;
+      font-size: 16px;
+    }
+
+    /* ── Q&A ── */
+    .qa {
+      margin-bottom: 24px;
+    }
+    .question {
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+    .question::before {
+      content: 'Q. ';
+      color: #1a73e8;
+    }
+    .answer {
+      color: #2c2c2c;
+      padding-left: 22px;
+      border-left: 2px solid #e0e0e0;
+      margin-left: 4px;
+    }
+
+    /* ── Cost table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 16px 0;
+    }
+    th {
+      background: #f1f3f4;
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 700;
+      color: #1a1a1a;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f3f4;
+      color: #2c2c2c;
+    }
+    tr:last-child td { border-bottom: none; }
+    .cost-free { color: #1e8e3e; font-weight: 600; }
+
+    /* ── Timeline ── */
+    .timeline {
+      margin: 20px 0;
+      padding-left: 0;
+      list-style: none;
+    }
+    .timeline li {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+    .timeline-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #1a73e8;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .timeline-content strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    .timeline-content span {
+      font-size: 13px;
+      color: #666;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid #e8e8e8;
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+    }
+
+    @media print {
+      body { padding: 40px 30px; }
+      .callout, .flow-box.blue { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="cover-tag">Gmail OTP Catcher — Internal Notes</div>
+    <h1>Service Worker:<br>Problem, Fix &amp; Future</h1>
+    <p style="color:#555; margin-top:12px; font-size:14px;">
+      A plain-English record of the core technical challenge behind the extension —
+      why the overlay only appeared on tab switch, how it was fixed,
+      and what the production-ready path looks like.
+    </p>
+    <div class="cover-meta">Rakshith Reddy &nbsp;·&nbsp; Gmail OTP Catcher v1 &nbsp;·&nbsp; February 2026</div>
+  </div>
+
+
+  <!-- SECTION 1 -->
+  <div class="section">
+    <div class="section-number">01</div>
+    <h2>What is the Service Worker?</h2>
+
+    <p>
+      A Chrome extension is split into two parts. The part you see — the overlay on screen,
+      the popup when you click the icon — lives on the page you're looking at.
+      Then there's the invisible part: the <strong>service worker</strong>.
+    </p>
+    <p>
+      The service worker is a background script that runs your code silently.
+      In this extension, its only job is to call Gmail's API every 10 seconds,
+      and when it finds an OTP email, push the code to whatever tab you're on
+      so the overlay appears.
+    </p>
+
+    <div class="callout">
+      <strong>In plain terms</strong>
+      Think of it as a person sitting in a back room, watching your inbox,
+      and shouting the code through the wall the moment one arrives.
+      No face. No UI. Just runs code in the background.
+    </div>
+  </div>
+
+
+  <!-- SECTION 2 -->
+  <div class="section">
+    <div class="section-number">02</div>
+    <h2>Why Chrome Puts It to Sleep</h2>
+
+    <p>
+      Chrome runs on your laptop. Your laptop has limited battery and memory.
+      Chrome is already juggling your tabs, videos, and other extensions.
+      It cannot afford to keep every extension's background worker running forever.
+    </p>
+    <p>
+      So Chrome has a hard rule:
+    </p>
+
+    <div class="callout callout-warning">
+      <strong>Chrome's Rule</strong>
+      If a service worker has done nothing for ~30 seconds, Chrome shuts it down.
+      Not forever — but it goes completely cold. No code runs. Nothing.
+    </div>
+
+    <p>
+      Chrome does keep a separate always-on system that watches for <em>events</em> —
+      things like "user switched tab" or "alarm went off." This tiny listener never sleeps.
+      When an event fires, it wakes the service worker back up.
+    </p>
+  </div>
+
+
+  <!-- SECTION 3 -->
+  <div class="section">
+    <div class="section-number">03</div>
+    <h2>The Problem — Overlay Only on Tab Switch</h2>
+
+    <p>
+      This was the core user frustration: the overlay was not appearing automatically.
+      It would only appear after switching to a random tab and switching back to the
+      job application page.
+    </p>
+
+    <p>Here is exactly what was happening:</p>
+
+    <ul class="timeline">
+      <li>
+        <div class="timeline-dot">1</div>
+        <div class="timeline-content">
+          <strong>User is on Greenhouse / Oracle, filling out a form</strong>
+          <span>Service worker is asleep — nothing has happened in 30+ seconds.</span>
+        </div>
+      </li>
+      <li>
+        <div class="timeline-dot">2</div>
+        <div class="timeline-content">
+          <strong>User hits Submit — OTP email arrives in Gmail</strong>
+          <span>Nobody is checking. The worker is still asleep. Email sits unread.</span>
+        </div>
+      </li>
+      <li>
+        <div class="timeline-dot">3</div>
+        <div class="timeline-content">
+          <strong>User switches to a random tab</strong>
+          <span>Chrome's always-on event listener fires a "tab switched" event.
+          Worker wakes up, checks Gmail, finds the code, stores it.</span>
+        </div>
+      </li>
+      <li>
+        <div class="timeline-dot">4</div>
+        <div class="timeline-content">
+          <strong>User switches back to the job application tab</strong>
+          <span>The page asks the worker "do you have anything new?" — worker says yes.
+          Overlay appears.</span>
+        </div>
+      </li>
+    </ul>
+
+    <div class="callout callout-warning">
+      <strong>The core issue</strong>
+      The overlay wasn't appearing because the extension detected the email in real time.
+      It appeared because tab-switching accidentally woke up the background worker,
+      which then found the email. The user was unknowingly using tab-switching
+      as a manual on/off switch.
+    </div>
+  </div>
+
+
+  <!-- SECTION 4 -->
+  <div class="section">
+    <div class="section-number">04</div>
+    <h2>The Fix — Persistent Port Connection</h2>
+
+    <p>
+      Chrome's sleep rule is: <em>"if nobody is talking to the worker, put him to sleep."</em>
+      The fix exploits exactly that rule in reverse.
+      <strong>If someone is always talking to the worker, Chrome cannot put him to sleep.</strong>
+    </p>
+
+    <p>
+      The moment you load any webpage, the content script — the part of the extension
+      that lives on the page — opens a direct private line to the service worker.
+      Like picking up a phone and calling him.
+    </p>
+
+    <p>
+      Chrome sees the open call. Chrome cannot shut the worker down.
+      The worker stays alive and runs a reliable loop:
+      check Gmail every 10 seconds, find a code, push it through the open line,
+      overlay appears immediately — no tab switching, no clicking.
+    </p>
+
+    <div class="callout callout-green">
+      <strong>What changes with the fix</strong>
+      The page holds an open connection (called a "port") to the background worker
+      for as long as the tab is open. Chrome's idle timer never starts
+      because the worker is never considered idle.
+    </div>
+
+    <p><strong>Flow — Before the fix:</strong></p>
+    <div class="flow">
+      <div class="flow-box">Gmail email arrives</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="background:#fce8e6;color:#c5221f;">Worker asleep</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Tab switch (accidental)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Worker wakes</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Switch back</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box blue">Overlay shows</div>
+    </div>
+
+    <p style="margin-top:20px;"><strong>Flow — After the fix:</strong></p>
+    <div class="flow">
+      <div class="flow-box">Gmail email arrives</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">Worker always on</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box blue">Overlay shows instantly</div>
+    </div>
+
+    <p style="margin-top:20px;"><strong>What happens when you close all tabs?</strong></p>
+    <p>
+      The open line drops. The worker has nobody talking to him, Chrome puts him to sleep.
+      But the moment any new tab loads, a fresh content script picks up the phone again
+      and the worker wakes up immediately.
+    </p>
+  </div>
+
+
+  <!-- SECTION 5 -->
+  <div class="section">
+    <div class="section-number">05</div>
+    <h2>Trade-offs &amp; Disadvantages</h2>
+
+    <p>
+      Keeping the worker always alive is a workaround, not a perfect solution.
+      There are real costs worth acknowledging.
+    </p>
+
+    <div class="qa">
+      <div class="question">Does this drain battery or memory?</div>
+      <div class="answer">
+        <p>
+          Yes, slightly. Every open tab holds a port connection. Ten open tabs means
+          ten open connections to the same worker. The worker also makes a Gmail API
+          network call every 10 seconds — small, but constant.
+          For personal use the impact is negligible. At scale with many users, it adds up.
+        </p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="question">How does this compare to the iPhone OTP approach?</div>
+      <div class="answer">
+        <p>
+          iOS reads an SMS that is already on the device. No network call.
+          No persistent connection. Zero battery cost between messages.
+          The current extension approach requires constant polling — the opposite of that.
+        </p>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <strong>Honest assessment</strong>
+      The current solution is reliable and works well for personal use.
+      But it is polling-based — the extension is always asking Gmail "anything new?"
+      The production-ready solution would have Gmail tell the extension when something arrives,
+      rather than the extension constantly asking.
+    </div>
+  </div>
+
+
+  <!-- SECTION 6 -->
+  <div class="section">
+    <div class="section-number">06</div>
+    <h2>The Production-Ready Future — Gmail Push Notifications</h2>
+
+    <p>
+      Instead of the extension asking Gmail every 10 seconds, Gmail itself
+      sends a notification the moment an email arrives.
+      This is called <strong>Gmail Push Notifications via Google Cloud Pub/Sub.</strong>
+    </p>
+
+    <p><strong>Current approach (polling):</strong></p>
+    <div class="flow" style="margin-bottom:20px;">
+      <div class="flow-box blue">Extension</div>
+      <div class="flow-arrow">→ asks every 10s →</div>
+      <div class="flow-box">Gmail API</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Overlay</div>
+    </div>
+
+    <p><strong>Production approach (push):</strong></p>
+    <div class="flow">
+      <div class="flow-box">Gmail</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Google Pub/Sub</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Your Server</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box blue">Extension</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">Overlay</div>
+    </div>
+
+    <p style="margin-top:20px;">
+      With this approach, the worker only wakes up when there is actually something to process.
+      Zero wasted checks. No persistent connection needed. No battery drain between emails.
+    </p>
+
+    <p><strong>What needs to be built:</strong></p>
+    <ul style="padding-left:20px; margin-bottom:14px;">
+      <li style="margin-bottom:8px;">A small backend server to receive Gmail's push notifications</li>
+      <li style="margin-bottom:8px;">Google Cloud Pub/Sub topic and subscription set up</li>
+      <li style="margin-bottom:8px;">Gmail's <code style="background:#f1f3f4;padding:2px 6px;border-radius:4px;">watch()</code> API registered for each user</li>
+      <li style="margin-bottom:8px;">Extension updated to listen for push instead of polling</li>
+    </ul>
+  </div>
+
+
+  <!-- SECTION 7 -->
+  <div class="section">
+    <div class="section-number">07</div>
+    <h2>Does It Cost Money?</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Cost</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Google Cloud Pub/Sub</td>
+          <td class="cost-free">Free</td>
+          <td>10 GB free per month. You'd use kilobytes.</td>
+        </tr>
+        <tr>
+          <td>Cloud Functions (serverless)</td>
+          <td class="cost-free">Free</td>
+          <td>Free tier covers millions of invocations per month.</td>
+        </tr>
+        <tr>
+          <td>Backend server hosting</td>
+          <td class="cost-free">Free to start</td>
+          <td>Vercel, Railway, or Render free tiers are sufficient early on.</td>
+        </tr>
+        <tr>
+          <td>Firebase Cloud Messaging</td>
+          <td class="cost-free">Free</td>
+          <td>Used to forward push to the Chrome extension.</td>
+        </tr>
+        <tr>
+          <td>At scale (thousands of users)</td>
+          <td>$2–10/month</td>
+          <td>Still very low. Scales linearly with usage.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-green">
+      <strong>Bottom line on cost</strong>
+      For personal use and early product — practically free.
+      A public product with thousands of users would cost a few dollars a month at most.
+    </div>
+  </div>
+
+
+  <!-- SECTION 8 -->
+  <div class="section">
+    <div class="section-number">08</div>
+    <h2>When to Make the Switch</h2>
+
+    <p>
+      The current polling solution works well for personal use and early testing.
+      There is no need to switch to Pub/Sub immediately. The right time to switch is when:
+    </p>
+
+    <ul style="padding-left:20px;">
+      <li style="margin-bottom:10px;">Submitting to the Chrome Web Store for public distribution</li>
+      <li style="margin-bottom:10px;">Real users start depending on it and reliability matters at scale</li>
+      <li style="margin-bottom:10px;">Battery or performance feedback starts coming in</li>
+      <li style="margin-bottom:10px;">Adding Outlook / other providers (server architecture makes multi-provider easier)</li>
+    </ul>
+
+    <div class="callout">
+      <strong>Important</strong>
+      Switching to Pub/Sub does not require rewriting the extension.
+      The OTP detection logic, overlay, and UI all stay exactly the same.
+      Only the <em>trigger mechanism</em> changes — from polling to push.
+      It is an upgrade, not a rebuild.
+    </div>
+  </div>
+
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Gmail OTP Catcher &nbsp;·&nbsp; Internal Technical Notes &nbsp;·&nbsp;
+    Rakshith Reddy &nbsp;·&nbsp; February 2026
+  </div>
+
+</body>
+</html>
