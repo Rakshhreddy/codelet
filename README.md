@@ -42,7 +42,7 @@ This extension eliminates that entirely. The code floats over whatever you're do
 ### 2. Configure the extension
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/gmail-otp-catcher.git
+git clone https://github.com/Rakshhreddy/codelet.git
 cd gmail-otp-catcher
 
 # Copy the example manifest and fill in your client ID
@@ -133,4 +133,4 @@ MIT — see [LICENSE](LICENSE)
 
 ---
 
-Built by [Rakshith Reddy](https://github.com/YOUR_USERNAME)
+Built by [Rakshith Reddy](https://github.com/Rakshhreddy)
