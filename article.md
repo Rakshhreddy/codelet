@@ -18,11 +18,11 @@ The iPhone solved this in the background years ago. The browser never caught up.
 
 I built this with Claude Code. I'm a product designer. The interesting work was the judgment calls.
 
-**A Western Alliance OTP showed up on a RealPage password reset screen.** Two unrelated flows, one stale code. I made codes live for 15 seconds and die the moment you navigate away. State has a half-life.
+**A code meant for one site started appearing on a completely unrelated one.** Two different flows, one piece of state hanging around between them. The question I had to answer was how long a verification code stays relevant. About 15 seconds, and only on the page that triggered it. The moment you navigate away, it's gone. A code is tied to a specific moment of intent. Once that moment passes, it becomes noise.
 
-**The word "RealPage" was being detected as a verification code.** Mixed-case, looks like Greenhouse's `mTjzdPVi`. I wrote a sharper rule. Real codes have three or more uppercase letters scattered unpredictably. Brand names don't. The bug came from never defining what "code-shaped" actually means.
+**A brand name was being detected as a verification code.** The system saw mixed-case letters and assumed it was the kind of alphanumeric code some products send. The real question I'd skipped was simpler: what does a code actually look like? Random codes have three or more uppercase letters scattered unpredictably. Brand names follow English title case. I never had a written definition of "code-shaped." The bug forced me to write one.
 
-**Auto-fill was injecting codes into resume fields and search bars.** I removed automatic fill entirely. Don't be clever when you don't have full context. Show the code. Let the user decide.
+**Auto-fill was injecting codes into resume fields, search bars, anywhere it found an input.** So I removed automatic fill entirely. If the system can't be confident about where the code belongs, it shouldn't guess. Show the code. Let the user decide.
 
 ## Why this matters
 
